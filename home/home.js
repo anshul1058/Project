@@ -146,37 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => { shuffle(); typeTip(); }, tips[0].length * 60 + 1500);
 })();
 
-// ==========================================
-// Typewriter Heading Animation
-// ==========================================
-(function () {
-    const el = document.getElementById('typewriter-text');
-    if (!el) return;
-
-    const plainText = 'Welcome to ';
-    const brandText = 'StudyPlatform';
-    const full = plainText + brandText;
-    let i = 0;
-
-    function type() {
-        if (i <= full.length) {
-            const plain = full.slice(0, Math.min(i, plainText.length));
-            const brand = i > plainText.length ? full.slice(plainText.length, i) : '';
-            el.innerHTML = plain + (brand ? `<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-400">${brand}</span>` : '');
-            i++;
-            setTimeout(type, 60);
-        } else {
-            // hide cursor after done
-            setTimeout(() => {
-                const cursor = document.getElementById('typewriter-cursor');
-                if (cursor) cursor.style.display = 'none';
-            }, 1200);
-        }
-    }
-
-    type();
-})();
-
 // Global state
 let currentPdfFile = null;
 let currentPdfText = ""; // Holds extracted text
@@ -341,8 +310,8 @@ window.generateAI = async (type) => {
         return;
     }
     
-    if (currentPdfText.trim().length < 50) {
-        showToast("PDF text is too short to process. Try a longer document.", "error");
+    if (currentPdfText.trim().length < 5) {
+        showToast("PDF text is too short to process.", "error");
         return;
     }
     
@@ -353,7 +322,7 @@ window.generateAI = async (type) => {
         <div id="${resultId}" class="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
             <div class="flex items-center gap-3 mb-2">
                 <span class="material-symbols-outlined text-primary animate-spin" style="font-size:18px;">sync</span>
-                <span class="text-[12px] font-medium text-slate-300">Generating ${type} using Gemini...</span>
+                <span class="text-[12px] font-medium text-slate-300">Generating ${type} using AI...</span>
             </div>
             <div class="space-y-2 mt-3 cursor-wait">
                 <div class="h-2 bg-white/5 rounded w-3/4 animate-pulse"></div>
@@ -372,16 +341,15 @@ window.generateAI = async (type) => {
     let content = '';
     
     try {
-        // Call Real Gemini API Flow
         if (type === 'summary') {
             const sumText = await aiService.generateSummary(currentPdfText);
             content = typeof marked !== 'undefined' ? marked.parse(sumText) : sumText;
         } else if (type === 'notes') {
             const notesText = await aiService.generateNotes(currentPdfText);
             content = typeof marked !== 'undefined' ? marked.parse(notesText) : notesText;
-        } else if (type === 'quiz') {
-            const quizText = await aiService.generateQuiz(currentPdfText);
-            content = typeof marked !== 'undefined' ? marked.parse(quizText) : quizText;
+        } else if (type === 'questions') {
+            const questionsText = await aiService.generateQuestions(currentPdfText);
+            content = typeof marked !== 'undefined' ? marked.parse(questionsText) : questionsText;
         } else if (type === 'mindmap') {
             const mindmapData = await aiService.generateMindMapData(currentPdfText);
 
@@ -456,12 +424,12 @@ window.generateAI = async (type) => {
     } catch (error) {
         console.error("AI Generation Error:", error);
         
-        let errorMessage = error.message || "An error occurred while contacting the Gemini AI.";
+        let errorMessage = error.message || "An error occurred while contacting the AI service.";
         let helpText = "";
         
         // Provide helpful context based on error type
-        if (errorMessage.includes("API key") || errorMessage.includes("GEMINI_API_KEY")) {
-            helpText = "Make sure your Gemini API key is set in Supabase Edge Function secrets.";
+        if (errorMessage.includes("API key") || errorMessage.includes("GEMINI_API_KEY") || errorMessage.includes("GROQ_API_KEY")) {
+            helpText = "Make sure your AI API key is valid and has quota remaining.";
         } else if (errorMessage.includes("not initialized")) {
             helpText = "Supabase is not properly initialized. Check your configuration.";
         } else if (errorMessage.includes("PDF") || errorMessage.includes("file")) {
@@ -635,20 +603,25 @@ window.askFollowUp = async () => {
         const content = typeof marked !== 'undefined' ? marked.parse(answer) : answer;
         resultEl.innerHTML = `
             <div class="flex items-center gap-2 mb-3">
-                <span class="material-symbols-outlined text-blue-400" style="font-size:16px;">forum</span>
-                <span class="text-[12px] font-bold text-white">Answer</span>
-                <span class="text-[11px] text-slate-600 italic ml-auto truncate max-w-[150px]">${question}</span>
+                <span class="material-symbols-outlined text-primary" style="font-size:16px;">auto_awesome</span>
+                <span class="text-[12px] font-bold text-white capitalize">AI Response</span>
             </div>
-            <div class="prose text-[13px] text-slate-300 w-full overflow-hidden">${content}</div>
+            <div class="prose text-[13px] text-slate-300 w-full overflow-hidden">
+                ${content}
+            </div>
         `;
     } catch (error) {
-        console.error('Follow-up error:', error);
+        console.error("AI Follow-up Error:", error);
         resultEl.innerHTML = `
-            <div class="flex items-center gap-2 mb-2">
+            <div class="flex items-center gap-2 mb-3">
                 <span class="material-symbols-outlined text-red-400" style="font-size:16px;">error</span>
-                <span class="text-[12px] font-bold text-red-400">Error</span>
+                <span class="text-[12px] font-bold text-red-400 capitalize">Response Failed</span>
             </div>
-            <p class="text-[12px] text-slate-400">${error.message || 'Failed to get answer.'}</p>
+            <div class="text-[12px] text-slate-400">
+                ${error.message || "Could not get a response."}
+            </div>
         `;
     }
+    
+    resultsArea.scrollTop = 0;
 };

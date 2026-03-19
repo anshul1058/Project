@@ -200,6 +200,7 @@
                             </label>
                         </div>
 
+                            <div id="semester-container">
                             <label class="flex flex-col gap-1.5">
                                 <span class="text-[13px] font-medium text-slate-400">Semester</span>
                                 <select id="semester-input"
@@ -215,7 +216,7 @@
                                     <option value="8">Semester 8</option>
                                 </select>
                             </label>
-                        </div>
+                            </div>
 
                         <!-- Subject & Category Row -->
                         <div class="grid grid-cols-2 gap-4">
@@ -276,6 +277,21 @@
 
     <script src="../login/supabase-config.js"></script>
     <script src="upload.js"></script>
+    <script>
+        // Hide semester for non-college streams
+        const streamInput = document.getElementById('stream-input');
+        const semesterContainer = document.getElementById('semester-container');
+        const noSemesterStreams = ['10th', '11th', '12th', 'jee', 'neet', 'upsc'];
+
+        streamInput.addEventListener('change', () => {
+            if (noSemesterStreams.includes(streamInput.value)) {
+                semesterContainer.style.display = 'none';
+                document.getElementById('semester-input').value = '';
+            } else {
+                semesterContainer.style.display = '';
+            }
+        });
+    </script>
 </body>
 
 </html>

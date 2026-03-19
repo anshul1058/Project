@@ -298,7 +298,7 @@ async function loadRecommendations() {
                     <div class="recommendation-stats">
                         <span>
                             <span class="material-symbols-outlined" style="font-size: 14px;">download</span>
-                            ${material.Downloads ? material.Downloads.count : 0}
+                            ${material.downloads && material.downloads[0] ? material.downloads[0].count : 0}
                         </span>
                     </div>
                 </div>
@@ -452,7 +452,7 @@ function renderMaterials() {
 function getCategoryIcon(category) {
     const icons = {
         notes: 'sticky_note_2',
-        pyqs: 'quiz',
+        pyqs: 'help_center',
         assignments: 'assignment',
         books: 'menu_book',
         presentations: 'presentation',

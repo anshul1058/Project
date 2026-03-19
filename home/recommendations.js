@@ -57,7 +57,7 @@ async function getUserDownloadHistory(userId) {
                 materials(id, branch, semester, subject, category, avg_rating)
             `)
             .eq('user_id', userId)
-            .order('created_at', { ascending: false })
+            .order('downloaded_at', { ascending: false })
             .limit(20);
 
         if (error) throw error;
@@ -90,7 +90,7 @@ async function getCollaborativeRecommendations(userId, userDownloads, limit) {
             .from('downloads')
             .select(`
                 user_id,
-                materials(id, title, branch, semester, subject, category, avg_rating, author_id, created_at, Downloads:downloads(count))
+                materials(id, title, branch, semester, subject, category, avg_rating, uploader_id, created_at, downloads:downloads(count))
             `)
             .in('material_id', downloadedIds)
             .neq('user_id', userId)
@@ -165,7 +165,7 @@ async function getContentBasedRecommendations(userDownloads, limit) {
                             subject, 
                             category, 
                             avg_rating, 
-                            author_id, 
+                            uploader_id, 
                             created_at
                         `)
                         .eq(key, item)
@@ -268,7 +268,7 @@ export async function getTrendingMaterials(limit = 6) {
                 subject,
                 category,
                 avg_rating,
-                author_id,
+                uploader_id,
                 created_at,
                 downloads:downloads(count)
             `)

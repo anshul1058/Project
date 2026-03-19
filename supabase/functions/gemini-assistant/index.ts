@@ -56,8 +56,8 @@ serve(async (req: Request) => {
       prompt = `You are an expert tutor. Summarize the following study material text. Make it clear, concise, and easy for a student to understand. Keep it under 150 words. Format your response in simple markdown (use **bold** for emphasis).\n\nTEXT:\n${truncated}`;
     } else if (type === "notes") {
       prompt = `You are an expert tutor. Extract the 4-6 most important key concepts or facts from the following text. Provide them as a bulleted list of short notes. Format your response in clean markdown.\n\nTEXT:\n${truncated}`;
-    } else if (type === "quiz") {
-      prompt = `Create 3–5 multiple-choice or short-answer questions based on the key concepts in the following text. Include the correct answer directly below each question in *italics*. Format everything in markdown.\n\nTEXT:\n${truncated}`;
+    } else if (type === "questions") {
+      prompt = `Create 8–10 high-quality short-answer questions based on the key concepts in the following text. Provide a clear, detailed answer directly below each question in *italics*. Format everything in markdown.\n\nTEXT:\n${truncated}`;
     } else if (type === "mindmap") {
       prompt = `Analyze the following study material text and extract exactly 6 key distinct concepts to form a mind map. You must output ONLY raw, valid JSON. Do NOT include markdown backticks.
 
@@ -86,18 +86,18 @@ TEXT:\n${truncated}`;
 
     if (!res.ok) {
       const errBody = await res.text();
-      console.error("Gemini error:", res.status, errBody);
+      console.error("AI service error:", res.status, errBody);
       
-      let errorMessage = "Gemini API request failed.";
+      let errorMessage = "AI service request failed.";
       
       if (res.status === 401 || res.status === 403) {
-        errorMessage = "Gemini API key is invalid or expired. Check your GEMINI_API_KEY secret in Supabase.";
+        errorMessage = "AI API key is invalid or expired. Check your secrets in Supabase.";
       } else if (res.status === 429) {
-        errorMessage = "Gemini API rate limit exceeded. Please try again in a moment.";
+        errorMessage = "AI API rate limit exceeded. Please try again in a moment.";
       } else if (res.status === 400) {
-        errorMessage = "Invalid request to Gemini API. The text might be too short or invalid.";
+        errorMessage = "Invalid request to AI service. The text might be too short or invalid.";
       } else if (res.status === 500 || res.status === 503) {
-        errorMessage = "Gemini API is temporarily unavailable. Try again in a moment.";
+        errorMessage = "AI service is temporarily unavailable. Try again in a moment.";
       }
       
       return new Response(

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Community Chat — StudyPlatform</title>
+    <meta name="description" content="Chat with your study community in real-time." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="../theme.js"></script>
+    <link rel="stylesheet" href="home.css" />
+
+    <style>
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 64px);
+        }
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        .messages-area::-webkit-scrollbar { width: 4px; }
+        .messages-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+        .messages-area::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+        .msg-bubble {
+            animation: msgIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .msg-own { margin-left: auto; }
+        .msg-other { margin-right: auto; }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            animation: bounce 1.4s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        .sidebar { transition: transform 0.3s ease; }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; top: 64px; right: 0; bottom: 0; z-index: 40; transform: translateX(100%); }
+            .sidebar.open { transform: translateX(0); }
+        }
+
+        .file-drop-highlight {
+            border-color: var(--primary-color) !important;
+            background: color-mix(in srgb, var(--primary-color) 5%, transparent) !important;
+        }
+    </style>
+</head>
+
+<body class="bg-bg-dark font-display text-slate-100 min-h-screen flex flex-col overflow-hidden">
+
+    <!-- ═══════════ HEADER ═══════════ -->
+    <header class="flex items-center justify-between whitespace-nowrap px-5 md:px-8 py-3.5 z-30 bg-[#0e1015]/50 backdrop-blur-xl border-b border-white/[0.04] shrink-0" style="height: 64px;">
+        <div class="flex items-center gap-3">
+            <a href="groups.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined" style="font-size:22px;">arrow_back</span>
+            </a>
+            <div class="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-purple-400" style="font-size:20px;">communities</span>
+            </div>
+            <div>
+                <h2 id="chat-group-name" class="text-[15px] font-bold text-white">Loading...</h2>
+                <p id="chat-member-count" class="text-[11px] text-slate-500">0 members</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" class="w-9 h-9 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] flex items-center justify-center transition-all">
+                <span class="material-symbols-outlined text-slate-400" style="font-size:20px;">group</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══════════ CHAT LAYOUT ═══════════ -->
+    <div class="flex flex-1 overflow-hidden">
+
+        <!-- Messages Area -->
+        <div class="flex-1 flex flex-col">
+
+            <!-- Messages -->
+            <div id="messages-area" class="messages-area flex-1 px-4 md:px-8 py-6 space-y-1">
+                <!-- Welcome message -->
+                <div id="welcome-msg" class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-purple-500/15 flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-purple-400" style="font-size:36px;">chat</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Welcome to the community!</h3>
+                    <p class="text-[13px] text-slate-500 max-w-xs">Start the conversation. Share notes, ask questions, and collaborate with your peers.</p>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="shrink-0 border-t border-white/[0.06] px-4 md:px-8 py-4 bg-[#0e1015]/30 backdrop-blur-xl">
+                <!-- File preview -->
+                <div id="file-preview" class="hidden mb-3 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+                    <span class="material-symbols-outlined text-primary" style="font-size:20px;">attach_file</span>
+                    <span id="file-preview-name" class="text-[13px] text-slate-300 truncate flex-1"></span>
+                    <button onclick="clearFileAttachment()" class="text-slate-500 hover:text-red-400 transition-colors">
+                        <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+                    </button>
+                </div>
+
+                <div class="flex items-end gap-3">
+                    <!-- Attach button -->
+                    <button onclick="document.getElementById('file-attach').click()" class="shrink-0 w-10 h-10 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] flex items-center justify-center transition-all">
+                        <span class="material-symbols-outlined text-slate-400" style="font-size:20px;">attach_file</span>
+                    </button>
+                    <input type="file" id="file-attach" class="hidden" onchange="handleFileAttach(event)" />
+
+                    <!-- Message input -->
+                    <div class="flex-1 relative">
+                        <textarea
+                            id="msg-input"
+                            placeholder="Type a message..."
+                            rows="1"
+                            class="w-full bg-white/[0.04] border border-white/[0.07] rounded-2xl px-5 py-3 text-[14px] text-white placeholder:text-slate-600 focus:outline-none focus:border-primary/30 focus:bg-white/[0.06] transition-all resize-none max-h-32"
+                            onkeydown="handleInputKeydown(event)"
+                            oninput="autoResizeInput(this)"
+                        ></textarea>
+                    </div>
+
+                    <!-- Send button -->
+                    <button onclick="sendMessage()" id="send-btn" class="shrink-0 w-10 h-10 rounded-xl bg-primary hover:bg-primary-dark flex items-center justify-center transition-all shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-gray-900" style="font-size:20px;">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ SIDEBAR — Members & Info ═══════════ -->
+        <div id="sidebar" class="sidebar w-72 bg-[#0e1015]/50 backdrop-blur-xl border-l border-white/[0.04] flex-col hidden md:flex overflow-y-auto">
+            <div class="p-5 border-b border-white/[0.06]">
+                <h3 class="text-[14px] font-bold text-white mb-1">Community Info</h3>
+                <p id="sidebar-desc" class="text-[12px] text-slate-500 leading-relaxed"></p>
+            </div>
+
+            <!-- Subject/Branch tags -->
+            <div id="sidebar-tags" class="px-5 py-3 border-b border-white/[0.06] flex flex-wrap gap-2"></div>
+
+            <!-- Members -->
+            <div class="p-5">
+                <h4 class="text-[12px] font-semibold text-slate-500 uppercase tracking-wider mb-3">Members</h4>
+                <div id="members-list" class="space-y-2">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Shared Files -->
+            <div class="p-5 border-t border-white/[0.06]">
+                <h4 class="text-[12px] font-semibold text-slate-500 uppercase tracking-wider mb-3">Shared Files</h4>
+                <div id="shared-files" class="space-y-2">
+                    <p class="text-[12px] text-slate-600">No files shared yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script src="../login/supabase-config.js"></script>
+    <script src="group-chat.js"></script>
+</body>
+
+</html>

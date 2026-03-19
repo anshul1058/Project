@@ -1,36 +1,17 @@
-// ai-service.js — calls Gemini API directly from the browser
-
-const GEMINI_API_KEY = "AIzaSyCslBloXXXoC43FHrOEMvkBLP6Akq8maOw";
-const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent";
-
-async function callGemini(prompt) {
-  const res = await fetch(`${GEMINI_URL}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-    }),
+/**
+ * Calls the Groq API via a secure Supabase Edge Function to protect the API key.
+ */
+async function callGroq(prompt) {
+  const { data, error } = await window.supabase.functions.invoke('groq-assistant', {
+    body: { prompt }
   });
 
-  if (!res.ok) {
-    const errBody = await res.text();
-    console.error("Gemini API error:", res.status, errBody);
-    if (res.status === 401 || res.status === 403) {
-      throw new Error("Gemini API key is invalid or expired.");
-    } else if (res.status === 429) {
-      throw new Error("Gemini API rate limit exceeded. Please try again in a moment.");
-    } else if (res.status === 400) {
-      throw new Error("Invalid request to Gemini API. The text might be too short or invalid.");
-    } else {
-      throw new Error(`Gemini API request failed with status ${res.status}.`);
-    }
+  if (error) {
+    console.error("Edge Function error:", error);
+    throw new Error(error.message || "Failed to process request via background service.");
   }
 
-  const data = await res.json();
-  const text =
-    data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() ?? "";
-  return text;
+  return data.data || "";
 }
 
 /**
@@ -63,36 +44,36 @@ export const generateSummary = async (text) => {
   console.log("generateSummary called, text length:", text?.length || 0);
   const truncated = (text || "").substring(0, 30000);
   const prompt = `You are an expert tutor. Summarize the following study material text. Make it clear, concise, and easy for a student to understand. Keep it under 150 words. Format your response in simple markdown (use **bold** for emphasis).\n\nTEXT:\n${truncated}`;
-  return await callGemini(prompt);
+  return await callGroq(prompt);
 };
 
 export const generateNotes = async (text) => {
   console.log("generateNotes called, text length:", text?.length || 0);
   const truncated = (text || "").substring(0, 30000);
-  const prompt = `You are an expert tutor. Extract the 4-6 most important key concepts or facts from the following text. Provide them as a bulleted list of short notes. Format your response in clean markdown.\n\nTEXT:\n${truncated}`;
-  return await callGemini(prompt);
+  const prompt = `You are an expert tutor. Provide a detailed and comprehensive set of study notes based on the following text. Extract the 8–10 most significant concepts and provide a thorough explanation for each in a clear bulleted format. Ensure the notes are detailed enough for deep study while remaining readable. Format your response in clean markdown with headers for better organization.\n\nTEXT:\n${truncated}`;
+  return await callGroq(prompt);
 };
 
-export const generateQuiz = async (text) => {
-  console.log("generateQuiz called, text length:", text?.length || 0);
+export const generateQuestions = async (text) => {
+  console.log("generateQuestions called, text length:", text?.length || 0);
   const truncated = (text || "").substring(0, 30000);
-  const prompt = `Create 3–5 multiple-choice or short-answer questions based on the key concepts in the following text. Include the correct answer directly below each question in *italics*. Format everything in markdown.\n\nTEXT:\n${truncated}`;
-  return await callGemini(prompt);
+  const prompt = `Create a list of 8–10 high-quality short-answer questions based on the key concepts in the following text. Provide a clear, detailed answer directly below each question in *italics*. Format everything in clean markdown with numbers.\n\nTEXT:\n${truncated}`;
+  return await callGroq(prompt);
 };
 
 export const generateMindMapData = async (text) => {
   console.log("generateMindMapData called, text length:", text?.length || 0);
   const truncated = (text || "").substring(0, 30000);
-  const prompt = `Analyze the following study material text and extract exactly 6 key distinct concepts to form a mind map. You must output ONLY raw, valid JSON. Do NOT include markdown backticks or any other text.
+  const prompt = `Analyze the following study material text and extract exactly 8 key distinct concepts to form a detailed mind map. You must output ONLY raw, valid JSON. Do NOT include markdown backticks or any other text.
 
 The JSON structure MUST exactly match this format:
-{"title": "Main Topic","left":[{"title": "Concept 1", "desc": "10-15 word description."},{"title": "Concept 2", "desc": "10-15 word description."},{"title": "Concept 3", "desc": "10-15 word description."}],"right":[{"title": "Concept 4", "desc": "10-15 word description."},{"title": "Concept 5", "desc": "10-15 word description."},{"title": "Concept 6", "desc": "10-15 word description."}]}
+{"title": "Main Topic","left":[{"title": "Concept 1", "desc": "A detailed 20-30 word description of this concept."},{"title": "Concept 2", "desc": "A detailed 20-30 word description of this concept."},{"title": "Concept 3", "desc": "A detailed 20-30 word description of this concept."},{"title": "Concept 4", "desc": "A detailed 20-30 word description of this concept."}],"right":[{"title": "Concept 5", "desc": "A detailed 20-30 word description of this concept."},{"title": "Concept 6", "desc": "A detailed 20-30 word description of this concept."},{"title": "Concept 7", "desc": "A detailed 20-30 word description of this concept."},{"title": "Concept 8", "desc": "A detailed 20-30 word description of this concept."}]}
 
-Keep "title" short (1-3 words). Keep "desc" concise (1-2 short sentences).
+Keep "title" short and descriptive (1-3 words). Ensure "desc" is thorough and informative.
 
 TEXT:\n${truncated}`;
 
-  let raw = await callGemini(prompt);
+  let raw = await callGroq(prompt);
   if (raw.startsWith("```json")) raw = raw.slice(7);
   if (raw.startsWith("```")) raw = raw.slice(3);
   if (raw.endsWith("```")) raw = raw.slice(0, -3);
@@ -109,5 +90,5 @@ export const askFollowUpQuestion = async (text, question) => {
   console.log("askFollowUpQuestion called, text length:", text?.length || 0, "question:", question);
   const truncated = (text || "").substring(0, 30000);
   const prompt = `You are an AI study assistant helping a student with a PDF they uploaded. Use ONLY the following text content as your source of truth, and then answer the follow-up question. If the answer is unclear from the text, say so honestly.\n\nPDF TEXT:\n${truncated}\n\nSTUDENT QUESTION:\n${question}`;
-  return await callGemini(prompt);
+  return await callGroq(prompt);
 };

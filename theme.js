@@ -96,8 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 4. Inject Theme Switcher UI after DOM load
+// 4. Inject Theme Switcher UI after DOM load — ONLY on homepage
 document.addEventListener('DOMContentLoaded', () => {
+    // Only show theme switcher on the homepage
+    if (!window.location.pathname.includes('home.html') && !window.location.pathname.endsWith('/home/')) return;
+
     const switcher = document.createElement('div');
     switcher.className = 'fixed left-5 bottom-6 z-[9999] group';
 

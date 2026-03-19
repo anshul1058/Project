@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Study Groups — StudyPlatform</title>
-    <meta name="description" content="Join study groups and collaborate with peers." />
+    <meta name="description" content="Create communities, find study peers, and collaborate on your studies." />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,12 +24,82 @@
     <script src="../theme.js"></script>
 
     <link rel="stylesheet" href="home.css" />
+    <style>
+        .action-card {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .action-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .action-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,0.12);
+        }
+        .action-card:hover .action-icon {
+            transform: scale(1.1) rotate(-3deg);
+        }
+        .action-icon {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+        }
+        .group-card {
+            transition: all 0.3s ease;
+        }
+        .group-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.12);
+        }
+        .peer-card {
+            transition: all 0.3s ease;
+        }
+        .peer-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.12);
+        }
+        .modal-overlay {
+            animation: fadeIn 0.2s ease;
+        }
+        .modal-content {
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .online-dot {
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+        }
+    </style>
 </head>
 
 <body class="bg-bg-dark font-display text-slate-100 min-h-screen flex flex-col">
 
     <!-- ═══════════ HEADER ═══════════ -->
-    <header class="flex items-center justify-between whitespace-nowrap px-5 md:px-12 py-4 z-30 bg-[#0e1015]/30 backdrop-blur-xl border-b border-white/[0.04]">
+    <header class="flex items-center justify-between whitespace-nowrap px-5 md:px-12 py-4 z-30 bg-[#0e1015]/30 backdrop-blur-xl border-b border-white/[0.04] sticky top-0">
         <div class="flex items-center gap-3 text-white">
             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-yellow-500 flex items-center justify-center shadow-lg shadow-primary/20">
                 <svg class="w-5 h-5 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
@@ -71,73 +141,258 @@
     </header>
 
     <!-- ═══════════ MAIN CONTENT ═══════════ -->
-    <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-12">
+    <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-10">
 
-        <!-- Header -->
-        <div class="mb-8 flex items-center justify-between">
-            <div>
-                <h1 class="text-4xl font-extrabold text-white mb-2">Study Groups</h1>
-                <p class="text-slate-400">Find peers and collaborate on your studies</p>
+        <!-- Page Header -->
+        <div class="mb-10 text-center">
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">Study Together</h1>
+            <p class="text-slate-400 text-lg max-w-lg mx-auto">Create communities, find study buddies, and collaborate in real-time</p>
+        </div>
+
+        <!-- ═══════════ ACTION CARDS ═══════════ -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12">
+
+            <!-- Create Community Card -->
+            <div class="action-card bg-[#0e1015]/50 backdrop-blur-md border border-white/[0.06] rounded-[24px] p-7 cursor-pointer"
+                 onclick="openCreateCommunityModal()">
+                <div class="flex items-start gap-5">
+                    <div class="action-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-700/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-purple-400" style="font-size:32px;">communities</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white mb-1.5">Create Community</h3>
+                        <p class="text-[14px] text-slate-400 leading-relaxed mb-4">Build a community around a subject, branch, or interest. Invite members and share resources together.</p>
+                        <div class="flex items-center gap-2 text-purple-400">
+                            <span class="text-[13px] font-semibold">Create Now</span>
+                            <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-gradient-to-tl from-purple-500/8 to-transparent rounded-full blur-3xl pointer-events-none"></div>
             </div>
-            <button onclick="openCreateGroupModal()" class="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-dark text-gray-900 font-semibold transition-all">
-                <span class="material-symbols-outlined" style="font-size:20px;">add</span>
-                Create Group
+
+            <!-- Study with Peer Card -->
+            <div class="action-card bg-[#0e1015]/50 backdrop-blur-md border border-white/[0.06] rounded-[24px] p-7 cursor-pointer"
+                 onclick="openFindPeerModal()">
+                <div class="flex items-start gap-5">
+                    <div class="action-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-700/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-emerald-400" style="font-size:32px;">handshake</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white mb-1.5">Study with a Peer</h3>
+                        <p class="text-[14px] text-slate-400 leading-relaxed mb-4">Find a study partner for 1-on-1 sessions. Match by subject, branch, or topic and learn together.</p>
+                        <div class="flex items-center gap-2 text-emerald-400">
+                            <span class="text-[13px] font-semibold">Find Peers</span>
+                            <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-gradient-to-tl from-emerald-500/8 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+            </div>
+        </div>
+
+        <!-- ═══════════ TABS ═══════════ -->
+        <div class="flex items-center gap-1 mb-6 border-b border-white/[0.06] pb-0">
+            <button class="tab-btn active text-[14px] font-semibold px-5 py-3 border-b-2 border-transparent transition-all rounded-t-lg"
+                    data-tab="communities" onclick="switchTab('communities')">
+                <span class="material-symbols-outlined align-middle mr-1.5" style="font-size:18px;">communities</span>
+                Communities
+            </button>
+            <button class="tab-btn text-[14px] font-semibold text-slate-500 px-5 py-3 border-b-2 border-transparent transition-all rounded-t-lg hover:text-slate-300"
+                    data-tab="peers" onclick="switchTab('peers')">
+                <span class="material-symbols-outlined align-middle mr-1.5" style="font-size:18px;">person_search</span>
+                Study Peers
+            </button>
+            <button class="tab-btn text-[14px] font-semibold text-slate-500 px-5 py-3 border-b-2 border-transparent transition-all rounded-t-lg hover:text-slate-300"
+                    data-tab="my-groups" onclick="switchTab('my-groups')">
+                <span class="material-symbols-outlined align-middle mr-1.5" style="font-size:18px;">bookmark</span>
+                My Groups
             </button>
         </div>
 
-        <!-- Groups Grid -->
-        <div id="groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Populated by JS -->
+        <!-- ═══════════ TAB: Communities ═══════════ -->
+        <div id="tab-communities" class="tab-content">
+            <!-- Community Search Bar -->
+            <div class="mb-6 relative group max-w-md">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-purple-400 transition-colors" style="font-size: 20px;">search</span>
+                <input type="text" id="community-search" placeholder="Search communities by name, branch or subject..." 
+                       class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-12 pr-4 py-3 text-[14px] text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500/40 focus:bg-white/[0.05] transition-all"
+                       oninput="filterCommunities(this.value)">
+            </div>
+
+            <div id="communities-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Populated by JS -->
+            </div>
+            <div id="communities-empty" class="hidden flex flex-col items-center justify-center py-20">
+                <div class="w-20 h-20 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-5">
+                    <span class="material-symbols-outlined text-purple-400/60" style="font-size:40px;">communities</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-400">No communities yet</h3>
+                <p class="text-slate-600 mt-2 text-[14px] max-w-xs text-center">Be the first to create a study community and bring learners together!</p>
+                <button onclick="openCreateCommunityModal()" class="mt-6 rounded-xl bg-purple-500 hover:bg-purple-600 px-6 py-2.5 text-[14px] font-semibold text-white transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                    Create Community
+                </button>
+            </div>
         </div>
 
-        <!-- Empty State -->
-        <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16">
-            <span class="material-symbols-outlined text-slate-600" style="font-size:64px;">groups</span>
-            <h3 class="text-xl font-bold text-slate-400 mt-4">No groups yet</h3>
-            <p class="text-slate-600 mt-2 text-[14px]">Create the first study group or wait for others to start one!</p>
-            <button onclick="openCreateGroupModal()" class="mt-6 rounded-xl bg-primary hover:bg-primary-dark px-6 py-2.5 text-[14px] font-semibold text-gray-900 transition-all">
-                Create Study Group
-            </button>
+        <!-- ═══════════ TAB: Study Peers ═══════════ -->
+        <div id="tab-peers" class="tab-content hidden">
+            <div id="peers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Populated by JS -->
+            </div>
+            <div id="peers-empty" class="hidden flex flex-col items-center justify-center py-20">
+                <div class="w-20 h-20 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-5">
+                    <span class="material-symbols-outlined text-emerald-400/60" style="font-size:40px;">person_search</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-400">No peer requests yet</h3>
+                <p class="text-slate-600 mt-2 text-[14px] max-w-xs text-center">Post a study peer request to find a buddy or browse available partners!</p>
+                <button onclick="openFindPeerModal()" class="mt-6 rounded-xl bg-emerald-500 hover:bg-emerald-600 px-6 py-2.5 text-[14px] font-semibold text-white transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                    Find a Peer
+                </button>
+            </div>
+        </div>
+
+        <!-- ═══════════ TAB: My Groups ═══════════ -->
+        <div id="tab-my-groups" class="tab-content hidden">
+            <div id="my-groups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Populated by JS -->
+            </div>
+            <div id="my-groups-empty" class="hidden flex flex-col items-center justify-center py-20">
+                <div class="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                    <span class="material-symbols-outlined text-primary/60" style="font-size:40px;">bookmark</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-400">You haven't joined any groups</h3>
+                <p class="text-slate-600 mt-2 text-[14px] max-w-xs text-center">Join a community or find a study peer to get started!</p>
+            </div>
         </div>
     </main>
 
-    <!-- Create Group Modal -->
-    <div id="create-group-modal" class="hidden fixed inset-0 bg-bg-dark/95 backdrop-blur-xl z-[1000] flex items-center justify-center p-4">
-        <div class="bg-[#0e1015]/40 backdrop-blur-[32px] rounded-[22px] border border-white/[0.08] p-8 w-full max-w-md"
-            style="box-shadow: 0 32px 64px -12px rgba(0,0,0,0.6);">
+    <!-- ═══════════ CREATE COMMUNITY MODAL ═══════════ -->
+    <div id="create-community-modal" class="hidden fixed inset-0 bg-bg-dark/90 backdrop-blur-xl z-[1000] flex items-center justify-center p-4 modal-overlay">
+        <div class="modal-content bg-[#0e1015]/60 backdrop-blur-[32px] rounded-[24px] border border-white/[0.08] p-8 w-full max-w-md"
+            style="box-shadow: 0 32px 64px -12px rgba(0,0,0,0.6), 0 0 80px -20px rgba(168,85,247,0.1);">
 
-            <h2 class="text-2xl font-extrabold text-white mb-6">Create Study Group</h2>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-purple-400" style="font-size:22px;">communities</span>
+                </div>
+                <h2 class="text-2xl font-extrabold text-white">Create Community</h2>
+            </div>
 
-            <form id="create-group-form" onsubmit="handleCreateGroup(event)">
+            <form id="create-community-form" onsubmit="handleCreateCommunity(event)">
                 <label class="flex flex-col gap-1.5 mb-4">
-                    <span class="text-[13px] font-medium text-slate-400">Group Name *</span>
-                    <input type="text" id="group-name" required placeholder="e.g., Data Structures Study Group"
-                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md h-12 placeholder:text-slate-600 px-4 text-[14px] transition-all focus:outline-none focus:border-primary/30 focus:bg-white/[0.05]" />
+                    <span class="text-[13px] font-medium text-slate-400">Community Name *</span>
+                    <input type="text" id="community-name" required placeholder="e.g., CS Enthusiasts"
+                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md h-12 placeholder:text-slate-600 px-4 text-[14px] transition-all focus:outline-none focus:border-purple-500/40 focus:bg-white/[0.05]" />
+                </label>
+
+                <label class="flex flex-col gap-1.5 mb-4">
+                    <span class="text-[13px] font-medium text-slate-400">Description</span>
+                    <textarea id="community-desc" rows="3" placeholder="What's this community about?"
+                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md placeholder:text-slate-600 px-4 py-3 text-[14px] transition-all focus:outline-none focus:border-purple-500/40 focus:bg-white/[0.05] resize-none"></textarea>
                 </label>
 
                 <label class="flex flex-col gap-1.5 mb-4">
                     <span class="text-[13px] font-medium text-slate-400">Branch</span>
-                    <select id="group-branch"
-                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md h-12 px-4 text-[14px] transition-all focus:outline-none focus:border-primary/30 focus:bg-white/[0.05]">
+                    <select id="community-branch"
+                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md h-12 px-4 text-[14px] transition-all focus:outline-none focus:border-purple-500/40 focus:bg-white/[0.05]">
                         <option value="">Select Branch (Optional)</option>
                         <option value="computer_science">Computer Science</option>
                         <option value="mechanical">Mechanical</option>
                         <option value="electrical">Electrical</option>
+                        <option value="civil">Civil</option>
                         <option value="mathematics">Mathematics</option>
+                        <option value="physics">Physics</option>
+                        <option value="chemistry">Chemistry</option>
+                        <option value="biology">Biology</option>
+                    </select>
+                </label>
+
+                <label class="flex flex-col gap-1.5 mb-4">
+                    <span class="text-[13px] font-medium text-slate-400">Subject / Topic</span>
+                    <input type="text" id="community-subject" placeholder="e.g., Data Structures & Algorithms"
+                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md h-12 placeholder:text-slate-600 px-4 text-[14px] transition-all focus:outline-none focus:border-purple-500/40 focus:bg-white/[0.05]" />
+                </label>
+
+                <label class="flex items-center gap-3 mb-6 cursor-pointer">
+                    <input type="checkbox" id="community-public" checked class="accent-purple-500 w-4 h-4 rounded" />
+                    <span class="text-[13px] text-slate-400">Public community (anyone can join)</span>
+                </label>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 px-4 py-3 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-semibold transition-all flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                        Create
+                    </button>
+                    <button type="button" onclick="closeCreateCommunityModal()" class="flex-1 px-4 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-semibold transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════════ FIND PEER MODAL ═══════════ -->
+    <div id="find-peer-modal" class="hidden fixed inset-0 bg-bg-dark/90 backdrop-blur-xl z-[1000] flex items-center justify-center p-4 modal-overlay">
+        <div class="modal-content bg-[#0e1015]/60 backdrop-blur-[32px] rounded-[24px] border border-white/[0.08] p-8 w-full max-w-md"
+            style="box-shadow: 0 32px 64px -12px rgba(0,0,0,0.6), 0 0 80px -20px rgba(16,185,129,0.1);">
+
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-emerald-400" style="font-size:22px;">handshake</span>
+                </div>
+                <h2 class="text-2xl font-extrabold text-white">Find a Study Peer</h2>
+            </div>
+
+            <form id="find-peer-form" onsubmit="handleCreatePeerRequest(event)">
+                <label class="flex flex-col gap-1.5 mb-4">
+                    <span class="text-[13px] font-medium text-slate-400">What do you want to study? *</span>
+                    <input type="text" id="peer-topic" required placeholder="e.g., Linear Algebra, React.js"
+                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md h-12 placeholder:text-slate-600 px-4 text-[14px] transition-all focus:outline-none focus:border-emerald-500/40 focus:bg-white/[0.05]" />
+                </label>
+
+                <label class="flex flex-col gap-1.5 mb-4">
+                    <span class="text-[13px] font-medium text-slate-400">Your Message</span>
+                    <textarea id="peer-message" rows="3" placeholder="Tell potential peers what you need help with..."
+                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md placeholder:text-slate-600 px-4 py-3 text-[14px] transition-all focus:outline-none focus:border-emerald-500/40 focus:bg-white/[0.05] resize-none"></textarea>
+                </label>
+
+                <label class="flex flex-col gap-1.5 mb-4">
+                    <span class="text-[13px] font-medium text-slate-400">Preferred Schedule</span>
+                    <select id="peer-schedule"
+                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md h-12 px-4 text-[14px] transition-all focus:outline-none focus:border-emerald-500/40 focus:bg-white/[0.05]">
+                        <option value="anytime">Anytime</option>
+                        <option value="morning">Morning (6AM – 12PM)</option>
+                        <option value="afternoon">Afternoon (12PM – 5PM)</option>
+                        <option value="evening">Evening (5PM – 10PM)</option>
+                        <option value="night">Night (10PM – 2AM)</option>
                     </select>
                 </label>
 
                 <label class="flex flex-col gap-1.5 mb-6">
-                    <span class="text-[13px] font-medium text-slate-400">Subject</span>
-                    <input type="text" id="group-subject" placeholder="e.g., Data Structures"
-                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md h-12 placeholder:text-slate-600 px-4 text-[14px] transition-all focus:outline-none focus:border-primary/30 focus:bg-white/[0.05]" />
+                    <span class="text-[13px] font-medium text-slate-400">Branch</span>
+                    <select id="peer-branch"
+                        class="flex w-full rounded-xl text-white border border-white/[0.07] bg-white/[0.03] backdrop-blur-md h-12 px-4 text-[14px] transition-all focus:outline-none focus:border-emerald-500/40 focus:bg-white/[0.05]">
+                        <option value="">Any Branch</option>
+                        <option value="computer_science">Computer Science</option>
+                        <option value="mechanical">Mechanical</option>
+                        <option value="electrical">Electrical</option>
+                        <option value="civil">Civil</option>
+                        <option value="mathematics">Mathematics</option>
+                        <option value="physics">Physics</option>
+                        <option value="chemistry">Chemistry</option>
+                        <option value="biology">Biology</option>
+                    </select>
                 </label>
 
                 <div class="flex gap-3">
-                    <button type="submit" class="flex-1 px-4 py-3 rounded-xl bg-primary hover:bg-primary-dark text-gray-900 font-semibold transition-all">
-                        Create Group
+                    <button type="submit" class="flex-1 px-4 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-all flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined" style="font-size:18px;">search</span>
+                        Post Request
                     </button>
-                    <button type="button" onclick="closeCreateGroupModal()" class="flex-1 px-4 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-semibold transition-all">
+                    <button type="button" onclick="closeFindPeerModal()" class="flex-1 px-4 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-semibold transition-all">
                         Cancel
                     </button>
                 </div>
