@@ -1,4 +1,4 @@
-// ═══════════ StudyPlatform Sign-Up Page Scripts ═══════════
+// ═══════════ Vidyasetu.notes Sign-Up Page Scripts ═══════════
 
 // ───── Floating Particles ─────
 let particles = [];

@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (topic) {
         document.getElementById('room-topic').textContent = topic;
         document.getElementById('pre-join-topic').textContent = `Topic: ${topic}`;
-        document.title = `${topic} — Study Room — StudyPlatform`;
+        document.title = `${topic} — Study Room — Vidyasetu.notes`;
     }
 
     // Generate a room ID if not provided
     if (!roomId) {
-        roomId = 'studyplatform-' + Math.random().toString(36).substr(2, 9);
+        roomId = 'vidyasetu-' + Math.random().toString(36).substr(2, 9);
     }
 });
 

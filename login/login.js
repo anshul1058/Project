@@ -1,4 +1,4 @@
-// ═══════════ StudyPlatform Login Page Scripts ═══════════
+// ═══════════ Vidyasetu.notes Login Page Scripts ═══════════
 
 // ───── State ─────
 let isLampOn = false;

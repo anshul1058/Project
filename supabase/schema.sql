@@ -1,4 +1,4 @@
--- ═══════════ StudyPlatform Database Schema ═══════════
+-- ═══════════ Vidyasetu.notes Database Schema ═══════════
 -- Run this in Supabase Dashboard → SQL Editor or via CLI
 
 -- Enable UUID extension

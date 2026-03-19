@@ -1,5 +1,5 @@
 /**
- * Recommendation Engine for StudyPlatform
+ * recommendations.js - Personalized Materials for Vidyasetu.notes
  * Provides personalized material recommendations using:
  * - Collaborative filtering (similar users' downloads)
  * - Content-based filtering (materials with similar metadata)

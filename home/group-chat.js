@@ -53,7 +53,7 @@ async function loadGroupInfo() {
         }
         tagsEl.innerHTML = tags || '<span class="text-[11px] text-slate-600">No tags</span>';
 
-        document.title = `${data.name} — Chat — StudyPlatform`;
+        document.title = `${data.name} — Chat — Vidyasetu.notes`;
     } catch (e) {
         console.error('Error loading group:', e);
     }

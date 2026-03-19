@@ -1,4 +1,4 @@
-// home.js - AI Chatbot for StudyPlatform
+// home.js - AI Chatbot for Vidyasetu.notes
 import * as aiService from './ai-service.js';
 
 // ═══════════ Authentication & User Menu ═══════════
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Typing effect for Home Title
     const typingTextElement = document.getElementById('typing-text');
     if(typingTextElement) {
-        const words = ["StudyPlatform", "Smart Learning", "Better Grades"];
+        const words = ["Vidyasetu.notes", "Smart Learning", "Better Grades"];
         let wordIndex = 0;
         let charIndex = 0;
         let isDeleting = false;

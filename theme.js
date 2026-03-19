@@ -12,8 +12,8 @@ const THEMES = {
 };
 
 // 1. Get saved theme or default to yellow
-const savedTheme = localStorage.getItem('study_platform_theme') || 'yellow';
-const savedDarkMode = localStorage.getItem('study_platform_dark_mode') !== 'false'; // Default to dark
+const savedTheme = localStorage.getItem('vidyasetu_notes_theme') || 'yellow';
+const savedDarkMode = localStorage.getItem('vidyasetu_notes_dark_mode') !== 'false'; // Default to dark
 
 // Utility to convert Hex to RGB string for Tailwind
 function hexToRgb(hex) {
@@ -55,7 +55,7 @@ function applyTheme(themeName) {
     document.documentElement.style.setProperty('--primary-color-rgb', hexToRgb(theme.primary));
     document.documentElement.style.setProperty('--primary-dark-rgb', hexToRgb(theme.dark));
 
-    localStorage.setItem('study_platform_theme', themeName);
+    localStorage.setItem('vidyasetu_notes_theme', themeName);
 
     // Update active state in switcher UI
     document.querySelectorAll('.theme-option').forEach(btn => {
@@ -73,7 +73,7 @@ applyTheme(savedTheme);
 // ═════════════════ DARK MODE TOGGLE ═════════════════
 function toggleDarkMode() {
     const isDark = document.body.classList.toggle('dark');
-    localStorage.setItem('study_platform_dark_mode', isDark);
+    localStorage.setItem('vidyasetu_notes_dark_mode', isDark);
     
     // Update theme icon if present
     const themeIcon = document.getElementById('theme-icon');
