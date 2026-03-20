@@ -504,7 +504,7 @@ async function handleGoogleSignIn() {
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: window.location.origin + window.location.pathname,
+            redirectTo: 'https://vidyasetu-notes.vercel.app/login/login.html',
         },
     });
 
