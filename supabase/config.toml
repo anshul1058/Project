@@ -2,7 +2,7 @@
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "Project"
+project_id = "nqfnnihztqudfmxubtpt"
 
 [api]
 enabled = true
@@ -319,7 +319,7 @@ email_optional = false
 
 [auth.external.google]
 enabled = true
-client_id = "680524873495-8l30f82dhlkh7jl4smg0j26jbirdedua.apps.googleusercontent.com"
+client_id = "468548484248-ht95kgij9e6mvsfco1bb5cuhcsrq66va.apps.googleusercontent.com"
 # DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 # Overrides the default auth redirectUrl.
