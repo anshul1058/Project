@@ -214,7 +214,7 @@ function clearFilters() {
 function updateActiveFilters() {
     activeFiltersContainer.innerHTML = '';
 
-    const streamNames = { '10': '10th', '11': '11th', 'btech': 'B.Tech', 'jee': 'JEE', 'upsc': 'UPSC', 'neet': 'NEET' };
+    const streamNames = { '10th': '10th', '11th': '11th', '12th': '12th', 'btech': 'B.Tech', 'jee': 'JEE', 'upsc': 'UPSC', 'neet': 'NEET' };
     if (currentFilters.stream) {
         activeFiltersContainer.innerHTML += createActiveFilterChip('Stream: ' + (streamNames[currentFilters.stream] || currentFilters.stream), 'stream');
     }
